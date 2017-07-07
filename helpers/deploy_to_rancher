@@ -12,6 +12,7 @@ DESCRIPTION
 
 OPTIONS
   -e <ENV>    Rancher environment to deploy to. Can be given via DEPLOY_ENV env variable.
+  -S <STACK>  Stack name. Required. Can also be given by DEPLOY_STACK env variable.
   -s <HOOK>   Slack webhook url. When given it sends a notification with information about the deployment. 
               Can be given via SLACK_WEBHOOK_URL env variable.
   -b <NUM>    Number of service instances replaced at a time. BATCH_SIZE env variable. Default is 1.
@@ -28,6 +29,7 @@ function deploy_to_rancher_read_arguments {
       -h) deploy_to_rancher_print_help; exit 0;;
       -e) shift; DEPLOY_ENV=$1;;
       -s) shift; SLACK_WEBHOOK_URL=$1;;
+      -S) shift; DEPLOY_STACK=$1;;
       -b) shift; BATCH_SIZE=$1;;
       -C) CONFIRM_UPGRADE=no;;
       -i) shift; INTERVAL=$1;;
@@ -41,6 +43,12 @@ function deploy_to_rancher_read_arguments {
 function deploy_to_rancher_validate_arguments {
   if [ -z "$DEPLOY_ENV" ]; then
     echo "Missing deploy env" >&2
+    deploy_to_rancher_print_help
+    exit 1
+  fi
+
+  if [ -z "$DEPLOY_STACK" ]; then
+    echo "Missing deploy stack" >&2
     deploy_to_rancher_print_help
     exit 1
   fi
@@ -76,7 +84,7 @@ function deploy_to_rancher_update_service {
   echo "Deploying to $DEPLOY_ENV"
   rancher-compose \
     -f docker/docker-compose.deploy.yml -r docker/rancher-compose.yml \
-    -p refinery up -d --upgrade --batch-size $BATCH_SIZE --interval $INTERVAL $CONFIRM_UPGRADE
+    -p $DEPLOY_STACK up -d --upgrade --batch-size $BATCH_SIZE --interval $INTERVAL $CONFIRM_UPGRADE
 }
 
 # send slack notification
@@ -85,7 +93,7 @@ function deploy_to_rancher_notify_slack {
     return
   fi
   echo "Sending slack notification"
-  MESSAGE="Deployed new version of refinery to $DEPLOY_ENV for $TRAVIS_COMMIT"
+  MESSAGE="Deployed new version of $DEPLOY_STACK to $DEPLOY_ENV for $TRAVIS_COMMIT"
   curl -s -d "payload={\"text\": \"$MESSAGE\" }" "$SLACK_WEBHOOK_URL"
 }
 
