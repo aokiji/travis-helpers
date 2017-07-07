@@ -82,7 +82,7 @@ function deploy_to_rancher_install_rancher_compose {
 function deploy_to_rancher_update_service {
   # update task definition
   echo "Deploying to $DEPLOY_ENV"
-  rancher-compose \
+  DEPLOY_ENV=$DEPLOY_ENV rancher-compose \
     -f docker/docker-compose.deploy.yml -r docker/rancher-compose.yml \
     -p $DEPLOY_STACK up -d --upgrade --batch-size $BATCH_SIZE --interval $INTERVAL $CONFIRM_UPGRADE
 }

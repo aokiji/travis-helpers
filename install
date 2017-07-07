@@ -1,0 +1,5 @@
+#!/bin/bash
+mkdir -p /tmp/bin
+curl -L https://github.com/nico-acidtango/travis-helpers/releases/download/v1.0/travis-helpers-1.0 > /tmp/bin/travis-helpers
+chmod a+x /tmp/bin/travis-helpers
+echo 'export PATH=$PATH:/tmp/bin'
