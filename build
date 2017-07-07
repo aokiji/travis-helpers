@@ -1,0 +1,22 @@
+#!/bin/bash 
+set -e
+
+if [ "$#" -eq 0 ]; then
+  cat <<USAGE
+$0 VERSION
+USAGE
+  exit 0
+fi
+
+VERSION=$1
+BUILD_FILE=travis-helpers-$VERSION
+echo "#!/bin/bash" > $BUILD_FILE
+
+echo "Building $VERSION"
+for helper in helpers/*; do
+  tail -n +3 $helper | head -n -3 >> $BUILD_FILE
+done
+
+sed 's/^source_helpers/#source_helpers/' travis-helpers >> $BUILD_FILE
+chmod a+x $BUILD_FILE
+echo "Done building $BUILD_FILE"

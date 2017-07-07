@@ -1,0 +1,76 @@
+#!/bin/bash
+set -e
+
+# prints help
+function push_docker_image_print_help {
+  cat <<HELP
+$0 <OPTIONS>
+
+DESCRIPTION
+  This script tags the latest version of a docker image and
+  pushes it to amazon ECR repository. Before pushing the image
+  it is given a user defined tag.
+
+OPTIONS
+  -m <NAME>   Image name. can also be provided via IMAGE_NAME env variable
+  -t <TAG>    Image tag. Tag given to the latest version of the image before pushing.
+              Can be given via IMAGE_VERSION env variable.
+  -h          Print this help.
+HELP
+}
+
+# process cli args
+function push_docker_image_read_arguments {
+  while (( "$#" )); do
+    case $1 in
+      -h) push_docker_image_print_help; exit 0;;
+      -m) shift; IMAGE_NAME=$1;;
+      -t) shift; IMAGE_VERSION=$1;;
+      *) echo Unknown argument $1;;
+    esac
+    shift
+  done
+}
+
+# validate required args
+function push_docker_image_validate_arguments {
+  if [ -z "$IMAGE_NAME" ]; then
+    echo "Missing image name" >&2
+    push_docker_image_print_help
+    exit 1
+  fi
+
+  if [ -z "$IMAGE_VERSION" ]; then
+    echo "Missing image version" >&2
+    push_docker_image_print_help
+    exit 1
+  fi
+}
+
+# This is needed to login on AWS and push the image on ECR
+function push_docker_image_install_awscli {
+  echo "Installing awscli"
+  pip install --user awscli
+  export PATH=$PATH:$HOME/.local/bin
+  eval $(aws ecr get-login)
+}
+
+# push image $IMAGE_NAME:$IMAGE_VERSION
+function push_docker_image_push_image {
+  # push
+  echo "Pushing $IMAGE_NAME:$IMAGE_VERSION"
+  docker tag $IMAGE_NAME $IMAGE_NAME:$IMAGE_VERSION
+  docker push "$IMAGE_NAME:$IMAGE_VERSION"
+  echo "Pushed $IMAGE_NAME:$IMAGE_VERSION"
+}
+
+function push_docker_image_main {
+  push_docker_image_read_arguments "$@"
+  push_docker_image_validate_arguments
+  push_docker_image_install_awscli
+  push_docker_image_push_image
+}
+
+if [ "$BASH_SOURCE" = "$0" ]; then
+  push_docker_image_main "$@"
+fi

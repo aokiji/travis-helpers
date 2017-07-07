@@ -1,0 +1,102 @@
+#!/bin/bash
+set -e
+
+# prints help
+function deploy_to_rancher_print_help {
+  cat <<HELP
+$0 <OPTIONS>
+
+DESCRIPTION
+  This scripts deploys a new version of the service in rancher environment.
+  Remember to set additional environment variables required by your deployment yml.
+
+OPTIONS
+  -e <ENV>    Rancher environment to deploy to. Can be given via DEPLOY_ENV env variable.
+  -s <HOOK>   Slack webhook url. When given it sends a notification with information about the deployment. 
+              Can be given via SLACK_WEBHOOK_URL env variable.
+  -b <NUM>    Number of service instances replaced at a time. BATCH_SIZE env variable. Default is 1.
+  -C          Don't confirm upgrade. By default we wait for the upgrade to complete and then clean-up.
+  -i <NUM>    Number of ms between deployments. Can be defined via INTERVAL env variable. Default is 30000
+  -h          Print this help.
+HELP
+}
+
+# process cli args
+function deploy_to_rancher_read_arguments {
+  while (( "$#" )); do
+    case $1 in
+      -h) deploy_to_rancher_print_help; exit 0;;
+      -e) shift; DEPLOY_ENV=$1;;
+      -s) shift; SLACK_WEBHOOK_URL=$1;;
+      -b) shift; BATCH_SIZE=$1;;
+      -C) CONFIRM_UPGRADE=no;;
+      -i) shift; INTERVAL=$1;;
+      *) echo Unknown argument $1;;
+    esac
+    shift
+  done
+}
+
+# validate required args
+function deploy_to_rancher_validate_arguments {
+  if [ -z "$DEPLOY_ENV" ]; then
+    echo "Missing deploy env" >&2
+    deploy_to_rancher_print_help
+    exit 1
+  fi
+
+  if [ -z "$BATCH_SIZE" ]; then
+    BATCH_SIZE=1
+  fi
+
+  if [ "$CONFIRM_UPGRADE" = "no" ]; then
+    CONFIRM_UPGRADE=""
+  else
+    CONFIRM_UPGRADE="--confirm-upgrade"
+  fi
+
+  if [ -z "$INTERVAL" ]; then
+    INTERVAL=30000
+  fi
+}
+
+# install rancher compose
+function deploy_to_rancher_install_rancher_compose {
+  echo "Installing rancher compose"
+  mkdir -p $HOME/.local/bin
+  curl https://releases.rancher.com/compose/v0.12.5/rancher-compose-linux-amd64-v0.12.5.tar.gz | \
+    tar xz --wildcards .*rancher-compose -O > $HOME/.local/bin/rancher-compose && \
+    chmod +x $HOME/.local/bin/rancher-compose
+  rancher-compose -v
+}
+
+# upgrades service
+function deploy_to_rancher_update_service {
+  # update task definition
+  echo "Deploying to $DEPLOY_ENV"
+  rancher-compose \
+    -f docker/docker-compose.deploy.yml -r docker/rancher-compose.yml \
+    -p refinery up -d --upgrade --batch-size $BATCH_SIZE --interval $INTERVAL $CONFIRM_UPGRADE
+}
+
+# send slack notification
+function deploy_to_rancher_notify_slack {
+  if [ -z "$SLACK_WEBHOOK_URL" ]; then
+    return
+  fi
+  echo "Sending slack notification"
+  MESSAGE="Deployed new version of refinery to $DEPLOY_ENV for $TRAVIS_COMMIT"
+  curl -s -d "payload={\"text\": \"$MESSAGE\" }" "$SLACK_WEBHOOK_URL"
+}
+
+function deploy_to_rancher_main {
+  deploy_to_rancher_read_arguments "$@"
+  deploy_to_rancher_validate_arguments 
+  deploy_to_rancher_install_rancher_compose
+  deploy_to_rancher_update_service
+  deploy_to_rancher_notify_slack
+}
+
+if [ "$BASH_SOURCE" = "$0" ]; then
+  deploy_to_rancher_main "$@"
+fi
