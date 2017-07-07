@@ -42,9 +42,9 @@ source_helpers
 
 while (( "$#" )); do
   case "$1" in
-    deploy) shift; deploy_to_rancher_main "$@";;
-    push) shift; push_docker_image_main "$@";;
-    install-compose) shift; install_compose_main "$@";;
+    deploy) shift; deploy_to_rancher_main "$@"; exit $?;;
+    push) shift; push_docker_image_main "$@"; exit $?;;
+    install-compose) shift; install_compose_main "$@"; exit $?;;
     -P) check_pull_request;;
     -M) check_branch master;;
     *) echo "Unknown command $1" >&2
