@@ -1,12 +1,16 @@
 #!/bin/bash
 function print_help {
   cat <<HELP
-$0 COMMAND <options>
+$0 <OPTIONS> COMMAND <options>
 
 COMMANDS
   deploy
   push
   install-compose
+
+OPTIONS
+  -P    only apply if is not pull request
+  -M    only apply if it is master branch
 
 HELP
 }
@@ -15,6 +19,18 @@ function source_helpers {
   for file in $(dirname $0)/helpers/*; do
     source $file
   done
+}
+
+function check_pull_request {
+  if [ "$TRAVIS_PULL_REQUEST" == "true" ]; then
+    exit 0
+  fi
+}
+
+function check_branch {
+  if [ "$TRAVIS_BRANCH" != "$1" ]; then
+    exit 0
+  fi
 }
 
 if [ "$#" -eq 0 ]; then
@@ -29,6 +45,8 @@ while (( "$#" )); do
     deploy) shift; deploy_to_rancher_main "$@";;
     push) shift; push_docker_image_main "$@";;
     install-compose) shift; install_compose_main "$@";;
+    -P) check_pull_request;;
+    -M) check_branch master;;
     *) echo "Unknown command $1" >&2
   esac
   shift

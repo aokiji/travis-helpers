@@ -1,14 +1,27 @@
 #!/bin/bash
 set -e
 
+# prints help
+function install_compose_print_help {
+  cat <<HELP
+$0 VERSION
+
+DESCRIPTION
+  This script installs the given docker-compose version
+HELP
+}
+
 function install_compose_check_arguments {
-  if [ -z "${DOCKER_COMPOSE_VERSION}" ]; then
-    echo "Missing env variable DOCKER_COMPOSE_VERSION" >&2
+  if [ "$#" -eq 0 ]; then
+    echo "Missing compose version" >&2
+    install_compose_print_help
     exit 1
   fi
+  DOCKER_COMPOSE_VERSION=$1
 }
 
 function install_compose_main {
+  install_compose_check_arguments "$@"
   echo "Installing compose"
   sudo rm -f /usr/local/bin/docker-compose
   curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
@@ -18,5 +31,5 @@ function install_compose_main {
 }
 
 if [ "$BASH_SOURCE" = "$0" ]; then
-  deploy_to_rancher_main "$@"
+  install_compose_main "$@"
 fi
