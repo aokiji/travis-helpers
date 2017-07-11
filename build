@@ -9,7 +9,9 @@ USAGE
 fi
 
 VERSION=$1
-BUILD_FILE=travis-helpers-$VERSION
+BUILD_DIR=pkg/$VERSION
+mkdir -p $BUILD_DIR
+BUILD_FILE=$BUILD_DIR/travis-helpers
 echo "#!/bin/bash" > $BUILD_FILE
 
 echo "Building $VERSION"
