@@ -1,11 +1,12 @@
 language: bash
+script:
+  - [[ ! -z "$TRAVIS_TAG" ]] && ./build $TRAVIS_TAG
 deploy:
   provider: releases
   api_key:
     secure: WgYX9oXtswGWGoZxIJJD42svDx1L7btbEhjTj0z+ZT7UBL0N+Quo+57apBayFPPKsm4nuAsZdx3ohZnCYt5l1Y5DiJ0fLY4YUfFkJWMdzboPF86bjaLHhhHQx/nnKntu/t69QfvpTJ4MhakIXjaKUyMHyfWCUpwEPjsSzKnAvIvxOFeV0Aq1yt70YcmtPAfVoAr2uVHicc8ynHWZYC5Hdlg4Alw5sGMFMccXjJ9fzXJFoNyaTjumMtRm9e/6UhvBN1Nns+vD3Xm3C7RmVDzoCWOYvC4kAHI+KUsvg8BOxNCdjzZ9LSltyJywm4EKwBzXC/LBM634UwLLGpG0hHUTWO4aTOLZ8trMEeNaZYwRaxc0TOYJEpDFXBmwdHLv9RAhUh3OBM6gTAvLYdeW9r+/pEdJek/FWcIoHo/boI1Xp7tDaPJ/TPGzKIObsLd5loIoMbsn2Zakx9ihVSnx/Klt1AeZX7tDNcaT4uDFeRGxeFjaj4c5MFALqqTo+k+OtySCPswAtHFCBK7ZNH4N2yosCoJlAba9XVgsMfQs9sa1u7HYcXAvtw8ThWbDkS6qTocobyapTMhC8LAsFTTD/4kuzKCoBLNtjJE62ywE3UvUqat+v84EL5KKV9d3TbMFeUmTzQovf2TUD6ttg5c/qEJG+t8C/13TZlQ7uzt6iPAb+e0=
   file: pkg/$TRAVIS_TAG/travis-helpers
   skip_cleanup: true
-  before_deploy: ./build $TRAVIS_TAG
   on:
     repo: nico-acidtango/travis-helpers
     tags: true
