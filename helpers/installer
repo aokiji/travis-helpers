@@ -1,0 +1,66 @@
+#!/bin/bash
+set -e
+
+# prints help
+function install_compose_print_help {
+  cat <<HELP
+$0 PROGRAM <VERSION>
+
+DESCRIPTION
+  This script installs a tool version
+
+TOOLS
+  awscli    install amazon command line tools
+  compose   installs docker compose
+HELP
+}
+
+function installer_is_present() {
+  if command -v "$1" > /dev/null 2>&1; then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+# This is needed to login on AWS and push the image on ECR
+function installer_install_awscli {
+  if [ "$(installer_is_present 'aws')" -eq 0 ]; then
+    echo "Installing awscli"
+    pip install --user awscli
+    export PATH=$PATH:$HOME/.local/bin
+  fi
+}
+
+function install_compose_check_arguments {
+  if [ "$#" -eq 0 ]; then
+    DOCKER_COMPOSE_VERSION=1.9.0
+  else
+    DOCKER_COMPOSE_VERSION=$1
+  fi
+}
+
+
+function installer_install_compose {
+  install_compose_check_arguments "$@"
+  echo "Installing compose $DOCKER_COMPOSE_VERSION"
+  sudo rm -f /usr/local/bin/docker-compose
+  curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  chmod +x docker-compose
+  sudo mv docker-compose /usr/local/bin
+  docker-compose -v
+}
+
+function installer_main {
+  program=$1
+  shift
+  case $program in
+    compose) installer_install_compose "$@";;
+    awscli) installer_install_awscli "$@";;
+    *) echo "Unknown tool"; exit 1;;
+  esac
+}
+
+if [ "$BASH_SOURCE" = "$0" ]; then
+  installer_main "$@"
+fi

@@ -47,13 +47,6 @@ function push_docker_image_validate_arguments {
   fi
 }
 
-# This is needed to login on AWS and push the image on ECR
-function push_docker_image_install_awscli {
-  echo "Installing awscli"
-  pip install --user awscli
-  export PATH=$PATH:$HOME/.local/bin
-  eval $(aws ecr get-login)
-}
 
 # push image $IMAGE_NAME:$IMAGE_VERSION
 function push_docker_image_push_image {
@@ -67,7 +60,9 @@ function push_docker_image_push_image {
 function push_docker_image_main {
   push_docker_image_read_arguments "$@"
   push_docker_image_validate_arguments
-  push_docker_image_install_awscli
+  declare -f installer_install_awscli > /dev/null || source $(dirname $0)/installer
+  installer_install_awscli
+  eval $(aws ecr get-login)
   push_docker_image_push_image
 }
 
