@@ -2,10 +2,7 @@
 set -e
 
 if [ "$#" -eq 0 ]; then
-  cat <<USAGE
-$0 VERSION
-USAGE
-  exit 0
+  VERSION=master
 fi
 
 VERSION=$1
