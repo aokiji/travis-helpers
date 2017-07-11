@@ -1,6 +1,7 @@
 #!/bin/bash
-VERSION='v1.1'
+URL=$(  curl -s https://api.github.com/repos/nico-acidtango/travis-helpers/releases/latest | \
+        grep browser_download_url | cut -d '"' -f 4 )
 mkdir -p /tmp/bin
-curl -L https://github.com/nico-acidtango/travis-helpers/releases/download/$VERSION/travis-helpers > /tmp/bin/travis-helpers
+curl -L $URL > /tmp/bin/travis-helpers
 chmod a+x /tmp/bin/travis-helpers
 echo 'export PATH=$PATH:/tmp/bin'
