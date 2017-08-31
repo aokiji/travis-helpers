@@ -9,8 +9,9 @@ COMMANDS
   install-compose
 
 OPTIONS
-  -P    only apply if is not pull request
-  -M    only apply if it is master branch
+  -P            only apply if is not pull request
+  -M            only apply if it is master branch
+  -b <branch>   only apply if it is given branch
 
 HELP
 }
@@ -48,6 +49,7 @@ while (( "$#" )); do
     install) shift; installer_main "$@"; exit $?;;
     -P) check_pull_request;;
     -M) check_branch master;;
+    -b) shift; check_branch $1;;
     *) echo "Unknown command $1" >&2
   esac
   shift
