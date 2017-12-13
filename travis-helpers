@@ -6,7 +6,9 @@ $0 <OPTIONS> COMMAND <options>
 COMMANDS
   deploy
   push
+  install
   install-compose
+  prepare-docker
 
 OPTIONS
   -P            only apply if is not pull request
@@ -34,6 +36,12 @@ function check_branch {
   fi
 }
 
+function prepare_docker {
+  installer_main compose $DOCKER_COMPOSE_VERSION
+  installer_main awscli
+  eval $(aws ecr get-login --no-include-email)
+}
+
 if [ "$#" -eq 0 ]; then
   print_help
   exit 0
@@ -47,6 +55,7 @@ while (( "$#" )); do
     push) shift; push_docker_image_main "$@"; exit $?;;
     install-compose) shift; installer_main compose "$@"; exit $?;;
     install) shift; installer_main "$@"; exit $?;;
+    prepare-docker) shift; prepare_docker "$@"; exit $?;;
     -P) check_pull_request;;
     -M) check_branch master;;
     -b) shift; check_branch $1;;
