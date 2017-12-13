@@ -27,7 +27,7 @@ function installer_is_present() {
 function installer_install_awscli {
   if [ "$(installer_is_present 'aws')" -eq 0 ]; then
     echo "Installing awscli"
-    pip install --user awscli
+    pip install --user "awscli==1.14.7"
     export PATH=$PATH:$HOME/.local/bin
   fi
 }
