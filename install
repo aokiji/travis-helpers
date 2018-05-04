@@ -1,6 +1,5 @@
 #!/bin/bash
-URL=$(  curl -s https://api.github.com/repos/nico-acidtango/travis-helpers/releases/latest | \
-        grep browser_download_url | cut -d '"' -f 4 | grep 'travis-helpers$' )
+URL='https://s3-eu-west-1.amazonaws.com/boton-scripts/travis-helpers/v1.4.0/travis-helpers'
 mkdir -p /tmp/bin
 curl -L $URL > /tmp/bin/travis-helpers
 chmod a+x /tmp/bin/travis-helpers
